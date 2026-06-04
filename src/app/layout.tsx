@@ -48,12 +48,18 @@ export default function RootLayout({
                 </span>
               </Link>
 
-              <nav className="flex items-center gap-6" aria-label="Main navigation">
+              <nav className="flex items-center gap-5" aria-label="Main navigation">
                 <Link
                   href="/"
                   className="text-sm text-accent-cream/80 hover:text-accent-gold transition-colors"
                 >
                   Home
+                </Link>
+                <Link
+                  href="/calendar"
+                  className="text-sm text-accent-cream/80 hover:text-accent-gold transition-colors"
+                >
+                  Calendar
                 </Link>
                 <Link
                   href="/archive"
@@ -162,6 +168,14 @@ export default function RootLayout({
                   Links
                 </p>
                 <ul className="space-y-1.5 text-sm">
+                  <li>
+                    <Link
+                      href="/calendar"
+                      className="text-text-muted hover:text-accent-gold transition-colors"
+                    >
+                      Calendar View
+                    </Link>
+                  </li>
                   <li>
                     <Link
                       href="/archive"

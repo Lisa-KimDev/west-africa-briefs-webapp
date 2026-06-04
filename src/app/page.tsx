@@ -75,6 +75,29 @@ export default async function HomePage() {
         </section>
       )}
 
+      {/* Calendar CTA */}
+      <section className="mb-12 sm:mb-16">
+        <Link
+          href="/calendar"
+          className="group flex items-center justify-between gap-4 p-5 sm:p-6 rounded-card border border-border-subtle bg-bg-card hover:bg-bg-card-hover hover:border-accent-gold/30 hover:shadow-card-hover transition-all duration-200"
+        >
+          <div className="flex items-center gap-4">
+            <span className="text-3xl">📅</span>
+            <div>
+              <h2 className="text-lg sm:text-xl font-bold text-accent-cream group-hover:text-accent-gold transition-colors">
+                Calendar View
+              </h2>
+              <p className="text-text-muted text-sm mt-0.5">
+                Browse all briefs by date. Click any day to read the full report.
+              </p>
+            </div>
+          </div>
+          <span className="text-text-muted group-hover:text-accent-gold transition-colors text-xl shrink-0">
+            →
+          </span>
+        </Link>
+      </section>
+
       {/* Categories */}
       <section className="mb-12 sm:mb-16">
         <h2 className="text-xl sm:text-2xl font-bold text-accent-gold mb-6">
