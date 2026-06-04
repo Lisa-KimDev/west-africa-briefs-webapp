@@ -13,7 +13,22 @@ const VALID_CATEGORIES = [
   "trade",
 ];
 
-export const revalidate = 3600;
+export async function generateStaticParams() {
+  return VALID_CATEGORIES.map((slug) => ({ slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const label = slug.charAt(0).toUpperCase() + slug.slice(1).replace("-", " ");
+  return {
+    title: `${label} Briefs — West Africa Daily Briefs`,
+    description: `All ${label.toLowerCase()} research briefs from West Africa Daily Briefs.`,
+  };
+}
 
 export default async function CategoryPage({
   params,
