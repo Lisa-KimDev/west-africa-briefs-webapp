@@ -1,65 +1,104 @@
-import Image from "next/image";
+import Link from "next/link";
+import {
+  getBriefs,
+  getLatestBrief,
+  getWeekBriefs,
+  TOPIC_EMOJIS,
+  SENTIMENT_COLORS,
+} from "@/lib/data";
+import { BriefCard } from "@/components/BriefCard";
+import { CategoryCard } from "@/components/CategoryCard";
+import { NewsletterSignup } from "@/components/NewsletterSignup";
 
-export default function Home() {
+export const revalidate = 3600;
+
+export default async function HomePage() {
+  const allBriefs = await getBriefs();
+  const latestBrief = await getLatestBrief();
+  const weekBriefs = getWeekBriefs(allBriefs);
+
+  const categories = [
+    { slug: "tech", label: "App Ideas", emoji: "📱" },
+    { slug: "crypto", label: "Crypto & Digital Assets", emoji: "₿" },
+    { slug: "agribusiness", label: "Agribusiness", emoji: "🌾" },
+    { slug: "energy", label: "Energy & Power", emoji: "⚡" },
+    { slug: "stocks", label: "Stocks & IPOs", emoji: "📈" },
+    { slug: "governance", label: "Governance", emoji: "🌍" },
+    { slug: "trade", label: "Trade", emoji: "📦" },
+  ];
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      {/* Hero */}
+      <section className="mb-12 sm:mb-16">
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-accent-gold mb-4">
+          West Africa Daily Briefs
+        </h1>
+        <p className="text-accent-cream/80 text-lg sm:text-xl max-w-2xl leading-relaxed">
+          Daily research on West African business, markets, and investment
+          opportunities. Covering crypto, agribusiness, energy, stocks,
+          governance, and trade.
+        </p>
+      </section>
+
+      {/* Today's Brief */}
+      {latestBrief && (
+        <section className="mb-12 sm:mb-16">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-accent-gold">
+              Latest Brief
+            </h2>
+            <span className="text-text-muted text-sm">
+              {new Date(latestBrief.date).toLocaleDateString("en-GB", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
+            </span>
+          </div>
+          <BriefCard brief={latestBrief} featured />
+        </section>
+      )}
+
+      {/* Week at a Glance */}
+      {weekBriefs.length > 0 && (
+        <section className="mb-12 sm:mb-16">
+          <h2 className="text-xl sm:text-2xl font-bold text-accent-gold mb-6">
+            This Week
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {weekBriefs.map((brief) => (
+              <BriefCard key={brief.date + brief.category} brief={brief} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Categories */}
+      <section className="mb-12 sm:mb-16">
+        <h2 className="text-xl sm:text-2xl font-bold text-accent-gold mb-6">
+          Browse by Topic
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {categories.map((cat) => (
+            <CategoryCard
+              key={cat.slug}
+              slug={cat.slug}
+              label={cat.label}
+              emoji={cat.emoji}
+              count={
+                allBriefs.filter((b) => b.category === cat.slug).length
+              }
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          ))}
         </div>
-      </main>
+      </section>
+
+      {/* Newsletter */}
+      <section className="mb-12">
+        <NewsletterSignup />
+      </section>
     </div>
   );
 }
