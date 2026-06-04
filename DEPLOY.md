@@ -1,40 +1,56 @@
-# Deployment Setup
+# Deployment & Scaling Guide
 
-## Vercel Deploy Hook (Required for Auto-Rebuilds)
+## Architecture
 
-The site is fully static — all pages are pre-rendered at build time. When a new brief is pushed to the data repo, the site needs to be rebuilt.
+The site uses a hybrid static + ISR approach designed to scale to hundreds of briefs without slowing down:
 
-### One-Time Setup
+| Page Type | Strategy | Behaviour |
+|-----------|----------|-----------|
+| **Home, Archive, Calendar, Newsletter, About** | ISR (revalidate: 1h) | Pre-rebuilt every hour, always fresh |
+| **Category pages** | ISR (revalidate: 1h) | Pre-rebuilt every hour, always fresh |
+| **Brief reader pages** | SSG (60 most recent) + ISR (1h) for the rest | Recent briefs are instant; older briefs generated on first visit and cached |
 
-1. Go to your Vercel project dashboard: `https://vercel.com/webara-studio/west-africa-briefs-webapp`
-2. Navigate to **Settings → Git → Deploy Hooks**
-3. Create a new deploy hook:
-   - **Name:** `New Brief Published`
-   - **Branch:** `main`
-   - **Build command:** (leave default)
-4. Copy the generated hook URL (looks like `https://api.vercel.com/v1/integrations/deploy/...`)
-5. Go to the **data repo** on GitHub: `https://github.com/Oswald-Benjamin/west-africa-daily-briefs/settings/secrets/actions`
-6. Add a new repository secret:
-   - **Name:** `VERCEL_DEPLOY_HOOK`
-   - **Value:** (paste the hook URL from step 4)
+## How It Scales
 
-### How It Works
+| # Briefs | Build Time | Pages at Build | On-Demand (ISR) |
+|----------|-----------|----------------|-----------------|
+| 7 (now) | ~10s | ~22 | 0 |
+| 60 | ~15s | ~75 | 0 |
+| 200 | ~20s | ~75 | 140 (generated on first visit) |
+| 500 | ~25s | ~75 | 440 (generated on first visit) |
+
+**Key point:** Build time stays roughly constant regardless of how many briefs exist. Only the 60 most recent are pre-rendered. Older briefs are generated lazily when first visited, then cached permanently.
+
+## Auto-Rebuild Pipeline
 
 ```
-New brief pushed to data repo
+New brief pushed to data repo (2:14am UTC)
   → GitHub Action detects change in briefs/ or site/data/
   → POST request to Vercel deploy hook
-  → Vercel rebuilds the webapp (all 22+ pages pre-rendered)
-  → New brief is live on the site in ~60 seconds
+  → Vercel rebuilds list pages (~15-20 seconds)
+  → New brief is live on Home, Archive, Calendar, Category pages
+  → Brief reader page generated on first visit (ISR)
 ```
 
-### Manual Deploy (First Time)
+## One-Time Vercel Setup
 
-Until the deploy hook is set up, you can trigger the first deploy manually:
+1. Go to **Vercel** → New Project → Import `Webara-Studio/west-africa-briefs-webapp`
+2. Framework: Next.js (auto-detected)
+3. Build command: `next build` (default)
+4. After first deploy, go to **Settings → Git → Deploy Hooks**
+5. Create hook: Name = "New Brief Published", Branch = `main`
+6. Copy the hook URL
+7. Go to data repo → Settings → Secrets → Actions → New secret:
+   - **Name:** `VERCEL_DEPLOY_HOOK`
+   - **Value:** (paste hook URL)
 
-```bash
-cd west-africa-briefs-webapp
-vercel --prod
-```
+## Vercel Free Tier Limits
 
-Or push to the `main` branch — if Vercel is already connected to the GitHub repo, it will auto-deploy on push.
+| Limit | Free Tier | Our Usage |
+|-------|-----------|-----------|
+| Build time | 6,000 min/month | ~30-60 min/month (daily deploys) |
+| Bandwidth | 100 GB/month | Minimal (static HTML) |
+| Serverless executions | 100,000/day | Minimal (ISR only) |
+| Team members | 1 | Fine for now |
+
+**We won't hit any free tier limits even at 500+ briefs.**

@@ -3,15 +3,20 @@ import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import { notFound } from "next/navigation";
 
-// This makes Next.js pre-render ALL brief pages at build time
+// Pre-render only the 60 most recent briefs at build time.
+// Older briefs are generated on-demand via ISR and cached forever.
+const STATIC_BRIEF_LIMIT = 60;
+
 export async function generateStaticParams() {
   const briefs = await getBriefs();
-  return briefs.map((brief) => ({
+  const sorted = briefs.sort((a, b) => b.date.localeCompare(a.date));
+  return sorted.slice(0, STATIC_BRIEF_LIMIT).map((brief) => ({
     slug: `${brief.date}-${brief.category}`,
   }));
 }
 
-// Generate metadata for SEO
+export const revalidate = 3600; // ISR: revalidate every hour
+
 export async function generateMetadata({
   params,
 }: {
@@ -40,14 +45,13 @@ export default async function BriefPage({
     notFound();
   }
 
-  // Strip YAML frontmatter
   const markdownContent = content.replace(/^---\n[\s\S]*?\n---\n/, "");
 
   const emoji = TOPIC_EMOJIS[brief.category] ?? "📋";
   const sentimentColor =
     SENTIMENT_COLORS[brief.sentiment] ?? SENTIMENT_COLORS.neutral;
 
-  // Find previous/next briefs for navigation
+  // Prev/next navigation
   const allBriefs = await getBriefs();
   const sorted = allBriefs.sort((a, b) => b.date.localeCompare(a.date));
   const currentIndex = sorted.findIndex(
@@ -63,19 +67,13 @@ export default async function BriefPage({
       <nav className="mb-6 text-sm" aria-label="Breadcrumb">
         <ol className="flex items-center gap-2 text-text-muted flex-wrap">
           <li>
-            <Link
-              href="/"
-              className="hover:text-accent-gold transition-colors"
-            >
+            <Link href="/" className="hover:text-accent-gold transition-colors">
               Home
             </Link>
           </li>
           <li>/</li>
           <li>
-            <Link
-              href="/archive"
-              className="hover:text-accent-gold transition-colors"
-            >
+            <Link href="/archive" className="hover:text-accent-gold transition-colors">
               Archive
             </Link>
           </li>

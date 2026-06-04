@@ -17,6 +17,8 @@ export async function generateStaticParams() {
   return VALID_CATEGORIES.map((slug) => ({ slug }));
 }
 
+export const revalidate = 3600; // ISR: revalidate every hour
+
 export async function generateMetadata({
   params,
 }: {
