@@ -1,4 +1,30 @@
+"use client";
+
+import { useActionState } from "react";
+import { subscribeToList } from "@/app/actions/subscribe";
+
+const initialState = { success: false, message: "" };
+
+function SubmitButton({ pending }: { pending: boolean }) {
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="px-6 py-2.5 rounded-button bg-accent-gold text-bg-primary font-semibold text-sm hover:bg-accent-gold-dark transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {pending ? "Subscribing..." : "Subscribe"}
+    </button>
+  );
+}
+
 export function NewsletterSignup() {
+  const [state, formAction, pending] = useActionState(
+    async (_prev: typeof initialState, formData: FormData) => {
+      return await subscribeToList(formData);
+    },
+    initialState
+  );
+
   return (
     <div className="rounded-card border border-border-subtle bg-bg-card p-6 sm:p-8">
       <div className="max-w-xl mx-auto text-center">
@@ -10,8 +36,7 @@ export function NewsletterSignup() {
           one engaging read. No spam, unsubscribe anytime.
         </p>
         <form
-          action="#"
-          method="POST"
+          action={formAction}
           className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
         >
           <label htmlFor="email" className="sr-only">
@@ -25,16 +50,22 @@ export function NewsletterSignup() {
             required
             className="flex-1 px-4 py-2.5 rounded-button bg-bg-primary border border-border-subtle text-accent-cream placeholder:text-text-muted text-sm focus:outline-none focus:border-accent-gold focus:ring-1 focus:ring-accent-gold/50 transition-colors"
           />
-          <button
-            type="submit"
-            className="px-6 py-2.5 rounded-button bg-accent-gold text-bg-primary font-semibold text-sm hover:bg-accent-gold-dark transition-colors shrink-0"
-          >
-            Subscribe
-          </button>
+          <SubmitButton pending={pending} />
         </form>
-        <p className="text-text-muted text-xs mt-3">
-          Free. Delivered every Sunday morning.
-        </p>
+        {state?.message && (
+          <p
+            className={`text-xs mt-3 ${
+              state.success ? "text-accent-gold" : "text-red-400"
+            }`}
+          >
+            {state.message}
+          </p>
+        )}
+        {!state?.message && (
+          <p className="text-text-muted text-xs mt-3">
+            Free. Delivered every Sunday morning.
+          </p>
+        )}
       </div>
     </div>
   );
