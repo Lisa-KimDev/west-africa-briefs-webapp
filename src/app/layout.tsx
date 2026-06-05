@@ -202,7 +202,7 @@ export default function RootLayout({
                   </li>
                   <li>
                     <a
-                      href="https://github.com/Oswald-Benjamin/west-africa-daily-briefs"
+                      href="https://github.com/Webara-Studio/west-africa-daily-briefs"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-text-muted hover:text-accent-gold transition-colors"

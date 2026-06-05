@@ -1,5 +1,5 @@
 const DATA_BASE =
-  "https://raw.githubusercontent.com/Oswald-Benjamin/west-africa-daily-briefs/master/site/data";
+  "https://raw.githubusercontent.com/Webara-Studio/west-africa-daily-briefs/master/site/data";
 
 export interface Brief {
   date: string;
@@ -75,7 +75,7 @@ export async function getBriefBySlug(
 
   let content: string | null = null;
   if (brief) {
-    const rawUrl = `https://raw.githubusercontent.com/Oswald-Benjamin/west-africa-daily-briefs/master/${brief._file}`;
+    const rawUrl = `https://raw.githubusercontent.com/Webara-Studio/west-africa-daily-briefs/master/${brief._file}`;
     try {
       const res = await fetch(rawUrl, { next: { revalidate: 3600 } });
       if (res.ok) content = await res.text();
